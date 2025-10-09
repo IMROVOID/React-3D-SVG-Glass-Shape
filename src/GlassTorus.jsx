@@ -7,7 +7,9 @@ import { MeshTransmissionMaterial } from "@react-three/drei";
 
 export default function GlassTorus() {
   const ref = useRef();
-  const svgData = useLoader(SVGLoader, "/shape.svg");
+  // Use Vite's base URL so the asset path resolves correctly when the app is
+  // deployed to a subpath (e.g. GitHub Pages at /<repo>/).
+  const svgData = useLoader(SVGLoader, `${import.meta.env.BASE_URL}shape.svg`);
   // MODIFICATION: Get the scene object which contains the environment map.
   const { scene } = useThree();
 
