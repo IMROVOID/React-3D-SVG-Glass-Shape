@@ -3,3 +3,4 @@
 .takeoutignore
 takeout.py
 package-lock.json
+/.takeout
