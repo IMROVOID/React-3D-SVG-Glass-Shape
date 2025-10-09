@@ -72,6 +72,34 @@ A control panel will appear in the top-right corner of the screen when you run t
 *   **Glass Material:** Modify properties like `thickness`, `roughness`, `transmission`, `ior` (Index of Refraction), `distortion`, and `temporalDistortion` to create unique glass effects.
 *   **Quality:** Toggle the `High Res` option to switch between a low-poly and high-poly model.
 
+## 📦 Deploy to GitHub Pages
+
+These steps publish the `dist/` build to the `gh-pages` branch so GitHub Pages can serve it.
+
+1. Make sure the `base` in `vite.config.js` matches your repo name (we set it to `/React-3D-SVG-Glass-Shape/`).
+2. Install packages and build:
+
+```bash
+npm install
+npm run build
+```
+
+3. Publish to GitHub Pages (this uses `gh-pages`):
+
+```bash
+npm run deploy
+```
+
+4. In your GitHub repository settings, enable Pages and choose the `gh-pages` branch as the source. Your site will be available at:
+
+```
+https://<your-username>.github.io/React-3D-SVG-Glass-Shape/
+```
+
+Notes:
+- If you prefer a custom domain or root deployment at `https://<user>.github.io`, update `base` in `vite.config.js` to `'/'` and adjust repository settings accordingly.
+- If your username or repo name changes, update the `base` value to `/${repoName}/`.
+
 ## 📜 License & Copyright
 
 This project is completely open source and available to the public. You are free to use, modify, distribute, and fork this software for any purpose. No attribution is required, but it is appreciated.
