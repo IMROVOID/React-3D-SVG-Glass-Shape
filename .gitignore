@@ -4,3 +4,4 @@
 takeout.py
 package-lock.json
 /.takeout
+/dist
