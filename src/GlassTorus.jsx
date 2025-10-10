@@ -5,12 +5,13 @@ import { Box3, Vector3, Shape, ExtrudeGeometry } from "three";
 import { useControls } from "leva";
 import { MeshTransmissionMaterial } from "@react-three/drei";
 
+// MODIFICATION: Import the SVG as a module. Vite will handle the correct path.
+import pythonLogo from "./assets/shape.svg";
+
 export default function GlassTorus() {
   const ref = useRef();
-  // Use Vite's base URL so the asset path resolves correctly when the app is
-  // deployed to a subpath (e.g. GitHub Pages at /<repo>/).
-  const svgData = useLoader(SVGLoader, `${import.meta.env.BASE_URL}shape.svg`);
-  // MODIFICATION: Get the scene object which contains the environment map.
+  // MODIFICATION: Pass the imported SVG path to the loader.
+  const svgData = useLoader(SVGLoader, pythonLogo);
   const { scene } = useThree();
 
   // --- Leva Control Box Setup ---
@@ -99,10 +100,6 @@ export default function GlassTorus() {
                 },
               ]}
             />
-            {/* 
-              MODIFICATION: Added the `background` prop and passed it the scene's 
-              environment texture. This is the crucial step that enables the distortion effect.
-            */}
             <MeshTransmissionMaterial
               {...materialProps}
               background={scene.environment}
