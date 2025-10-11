@@ -1,41 +1,32 @@
-import { useMemo, useRef } from "react";
-import { useFrame, useLoader, useThree } from "@react-three/fiber";
-import { SVGLoader } from "three/examples/jsm/loaders/SVGLoader";
-import { Box3, Vector3, Shape, ExtrudeGeometry } from "three";
+import React, { useMemo, useRef } from "react";
+// MODIFICATION: Corrected the import path from '@react-three-fiber/core' to '@react-three/fiber'.
+// MODIFICATION: Imported 'RootState' to provide types for the useFrame hook.
+import { useFrame, useLoader, RootState } from "@react-three/fiber";
+import { SVGLoader, SVGResult } from "three/examples/jsm/loaders/SVGLoader.js";
+import { Vector3, ExtrudeGeometry, Group, Shape, ShapePath, Color } from "three";
 import { useControls } from "leva";
-import { MeshTransmissionMaterial } from "@react-three/drei";
-
-// MODIFICATION: Import the SVG as a module. Vite will handle the correct path.
 import pythonLogo from "./assets/shape.svg";
 
-export default function GlassTorus() {
-  const ref = useRef();
-  // MODIFICATION: Pass the imported SVG path to the loader.
-  const svgData = useLoader(SVGLoader, pythonLogo);
-  const { scene } = useThree();
+// A helper type for the shape data structure
+type ShapeData = {
+    shape: Shape;
+    color: Color;
+};
 
-  // --- Leva Control Box Setup ---
+export default function SvgShape(props: React.ComponentPropsWithoutRef<'group'>) {
+  const ref = useRef<Group>(null);
+  const svgData = useLoader(SVGLoader, pythonLogo) as SVGResult;
+
   const { scale, depth, roundness } = useControls("Geometry", {
-    scale: { value: 1, min: 0.1, max: 2, step: 0.01 },
-    depth: { value: 70, min: 1, max: 300, step: 1 },
+    scale: { value: 1.0, min: 0.1, max: 2, step: 0.01 },
+    depth: { value: 100, min: 1, max: 300, step: 1 },
     roundness: {
-      value: 20,
+      value: 7.0,
       min: 0,
       max: 20,
       step: 0.1,
       label: "Edge Roundness",
     },
-  });
-
-  const materialProps = useControls("Glass Material", {
-    thickness: { value: 0.2, min: 0, max: 3, step: 0.05 },
-    roughness: { value: 0.1, min: 0, max: 1, step: 0.1 },
-    transmission: { value: 1, min: 0, max: 1, step: 0.1 },
-    ior: { value: 1.2, min: 0, max: 3, step: 0.1 },
-    chromaticAberration: { value: 0.02, min: 0, max: 1 },
-    distortion: { value: 0.4, min: 0, max: 1, step: 0.1 },
-    temporalDistortion: { value: 0.6, min: 0, max: 1, step: 0.1 },
-    backside: { value: false },
   });
 
   const { "High Res": highRes } = useControls("Quality", {
@@ -47,20 +38,26 @@ export default function GlassTorus() {
       return { shapes: [], scaleFactor: 1, centerOffset: new Vector3(0, 0, 0) };
     }
 
-    const allShapes = svgData.paths.flatMap((path) =>
-      path.toShapes(true).map((shape) => ({ shape, color: path.color }))
+    const allShapes: ShapeData[] = svgData.paths.flatMap((path: ShapePath) =>
+      path.toShapes(true).map((shape: Shape) => ({ shape, color: path.color }))
     );
 
     const combinedGeometry = new ExtrudeGeometry(
-      allShapes.map((s) => s.shape),
+      allShapes.map((s: ShapeData) => s.shape),
       { depth: 1, bevelEnabled: false }
     );
+
     combinedGeometry.computeBoundingBox();
+
+    if (!combinedGeometry.boundingBox) {
+      combinedGeometry.dispose();
+      return { shapes: allShapes, scaleFactor: 1, centerOffset: new Vector3(0, 0, 0) };
+    }
+
     const center = new Vector3();
     combinedGeometry.boundingBox.getCenter(center);
-    combinedGeometry.dispose();
 
-    const TARGET_SIZE = 10;
+    const TARGET_SIZE = 3.5;
     const size = new Vector3();
     combinedGeometry.boundingBox.getSize(size);
     const maxDimension = Math.max(size.x, size.y);
@@ -68,6 +65,8 @@ export default function GlassTorus() {
     const adjustedMaxSize = maxDimension + roundness * 2;
     const calculatedScale =
       adjustedMaxSize > 0 ? TARGET_SIZE / adjustedMaxSize : 1;
+    
+    combinedGeometry.dispose();
 
     return {
       shapes: allShapes,
@@ -76,16 +75,17 @@ export default function GlassTorus() {
     };
   }, [svgData, roundness]);
 
-  useFrame((state, delta) => {
+  // MODIFICATION: Added explicit types for the 'state' and 'delta' parameters.
+  useFrame((_state: RootState, delta: number) => {
     if (ref.current) {
       ref.current.rotation.y += delta / 4;
     }
   });
 
   return (
-    <group ref={ref} scale={scaleFactor * scale}>
+    <group ref={ref} scale={scaleFactor * scale} {...props}>
       <group position={[-centerOffset.x, -centerOffset.y, -centerOffset.z]}>
-        {shapes.map(({ shape }) => (
+        {shapes.map(({ shape }: ShapeData) => (
           <mesh key={shape.uuid}>
             <extrudeGeometry
               args={[
@@ -100,10 +100,7 @@ export default function GlassTorus() {
                 },
               ]}
             />
-            <MeshTransmissionMaterial
-              {...materialProps}
-              background={scene.environment}
-            />
+            <meshStandardMaterial color="white" />
           </mesh>
         ))}
       </group>
