@@ -1,7 +1,7 @@
 import { Canvas } from '@react-three/fiber';
 import { Environment } from '@react-three/drei';
-// MODIFICATION: Added the '.tsx' extension to ensure TypeScript resolves the correct file.
 import SvgShape from './SvgShape.tsx';
+import GlassSceneContainer from './GlassSceneContainer.tsx';
 
 function Scene() {
   const cameraZ = 20;
@@ -16,14 +16,18 @@ function Scene() {
 
   return (
     <>
+      {/* MODIFICATION: Added renderOrder={-2} to ensure the grid is always drawn first. */}
       <gridHelper
         args={[gridSize, gridDivisions, '#333333', '#333333']}
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, 0, gridZ]}
+        renderOrder={-2}
       />
       <Environment preset="studio" />
       <directionalLight intensity={3} position={[0, 3, 2]} />
-      <SvgShape />
+      <GlassSceneContainer>
+        <SvgShape />
+      </GlassSceneContainer>
     </>
   );
 }

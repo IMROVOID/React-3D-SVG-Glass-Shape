@@ -1,10 +1,9 @@
 import React, { useMemo, useRef } from "react";
-// MODIFICATION: Corrected the import path from '@react-three-fiber/core' to '@react-three/fiber'.
-// MODIFICATION: Imported 'RootState' to provide types for the useFrame hook.
-import { useFrame, useLoader, RootState } from "@react-three/fiber";
-import { SVGLoader, SVGResult } from "three/examples/jsm/loaders/SVGLoader.js";
-import { Vector3, ExtrudeGeometry, Group, Shape, ShapePath, Color } from "three";
+import { useFrame, useLoader, type RootState } from "@react-three/fiber";
+import { SVGLoader, type SVGResult } from "three/examples/jsm/loaders/SVGLoader.js";
+import { Vector3, ExtrudeGeometry, Group, Shape, ShapePath, Color, type Texture } from "three";
 import { useControls } from "leva";
+import { MeshTransmissionMaterial, type MeshTransmissionMaterialProps } from '@react-three/drei';
 import pythonLogo from "./assets/shape.svg";
 
 // A helper type for the shape data structure
@@ -13,11 +12,18 @@ type ShapeData = {
     color: Color;
 };
 
-export default function SvgShape(props: React.ComponentPropsWithoutRef<'group'>) {
+// Define the new props that will be injected by the container
+interface SvgShapeProps extends React.ComponentPropsWithoutRef<'group'> {
+  buffer?: Texture;
+  materialProps?: MeshTransmissionMaterialProps;
+}
+
+export default function SvgShape({ buffer, materialProps, ...props }: SvgShapeProps) {
   const ref = useRef<Group>(null);
   const svgData = useLoader(SVGLoader, pythonLogo) as SVGResult;
 
-  const { scale, depth, roundness } = useControls("Geometry", {
+  // MODIFICATION: Added 'steps' and 'curveSegments' to the controls for finer detail adjustment.
+  const { scale, depth, roundness, steps, curveSegments } = useControls("Geometry", {
     scale: { value: 1.0, min: 0.1, max: 2, step: 0.01 },
     depth: { value: 100, min: 1, max: 300, step: 1 },
     roundness: {
@@ -27,6 +33,8 @@ export default function SvgShape(props: React.ComponentPropsWithoutRef<'group'>)
       step: 0.1,
       label: "Edge Roundness",
     },
+    steps: { value: 2, min: 1, max: 20, step: 1, label: "Extrusion Steps" },
+    curveSegments: { value: 32, min: 4, max: 64, step: 1, label: "Curve Segments" },
   });
 
   const { "High Res": highRes } = useControls("Quality", {
@@ -75,7 +83,6 @@ export default function SvgShape(props: React.ComponentPropsWithoutRef<'group'>)
     };
   }, [svgData, roundness]);
 
-  // MODIFICATION: Added explicit types for the 'state' and 'delta' parameters.
   useFrame((_state: RootState, delta: number) => {
     if (ref.current) {
       ref.current.rotation.y += delta / 4;
@@ -83,24 +90,27 @@ export default function SvgShape(props: React.ComponentPropsWithoutRef<'group'>)
   });
 
   return (
-    <group ref={ref} scale={scaleFactor * scale} {...props}>
+    <group ref={ref} scale={scaleFactor * scale} renderOrder={1} {...props}>
       <group position={[-centerOffset.x, -centerOffset.y, -centerOffset.z]}>
         {shapes.map(({ shape }: ShapeData) => (
           <mesh key={shape.uuid}>
+            {/* MODIFICATION: Added 'steps' and 'curveSegments' and optimized 'bevelSegments' */}
             <extrudeGeometry
               args={[
                 shape,
                 {
                   depth: depth,
+                  steps: steps,
                   bevelEnabled: true,
                   bevelThickness: roundness,
                   bevelSize: roundness,
                   bevelOffset: -roundness,
-                  bevelSegments: highRes ? 80 : 16,
+                  bevelSegments: highRes ? 24 : 8, // Optimized for performance
+                  curveSegments: curveSegments,
                 },
               ]}
             />
-            <meshStandardMaterial color="white" />
+            <MeshTransmissionMaterial buffer={buffer!} {...materialProps} />
           </mesh>
         ))}
       </group>
