@@ -4,7 +4,7 @@ import { createPortal, useFrame, useThree } from '@react-three/fiber';
 import { useFBO, type MeshTransmissionMaterialProps } from '@react-three/drei';
 import { Images, Typography } from './content';
 
-// MODIFICATION: Interface updated to accept the new 'showDemoElements' prop.
+// MODIFICATION: Interface simplified, 'refractionQuality' prop removed.
 interface GlassSceneContainerProps {
   children: React.ReactNode;
   materialProps: MeshTransmissionMaterialProps;
@@ -12,8 +12,13 @@ interface GlassSceneContainerProps {
 }
 
 export default function GlassSceneContainer({ children, materialProps, showDemoElements }: GlassSceneContainerProps) {
+  // MODIFICATION: 'dpr' and 'size' removed from destructuring.
   const { gl, camera, viewport } = useThree();
+  
+  // MODIFICATION: useFBO is now called with no arguments, which is the correct usage
+  // for a standard, full-resolution buffer. The quality is handled by the material itself.
   const buffer = useFBO();
+  
   const [backgroundScene] = useState(() => new THREE.Scene());
 
   useFrame(() => {
@@ -26,7 +31,6 @@ export default function GlassSceneContainer({ children, materialProps, showDemoE
     <>
       {/* Portal renders the background content into a separate scene */}
       {createPortal(
-        // MODIFICATION: Conditionally renders the background elements based on the prop.
         showDemoElements && (
             <>
                 <Images />
