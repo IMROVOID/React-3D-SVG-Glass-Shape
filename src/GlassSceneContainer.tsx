@@ -4,18 +4,17 @@ import { createPortal, useFrame, useThree } from '@react-three/fiber';
 import { useFBO, type MeshTransmissionMaterialProps } from '@react-three/drei';
 import { Images, Typography } from './content';
 
-// MODIFICATION: Signature updated to accept materialProps.
+// MODIFICATION: Interface updated to accept the new 'showDemoElements' prop.
 interface GlassSceneContainerProps {
   children: React.ReactNode;
   materialProps: MeshTransmissionMaterialProps;
+  showDemoElements: boolean;
 }
 
-export default function GlassSceneContainer({ children, materialProps }: GlassSceneContainerProps) {
+export default function GlassSceneContainer({ children, materialProps, showDemoElements }: GlassSceneContainerProps) {
   const { gl, camera, viewport } = useThree();
   const buffer = useFBO();
   const [backgroundScene] = useState(() => new THREE.Scene());
-
-  // MODIFICATION: The useControls hook has been removed from this component.
 
   useFrame(() => {
     gl.setRenderTarget(buffer);
@@ -27,10 +26,13 @@ export default function GlassSceneContainer({ children, materialProps }: GlassSc
     <>
       {/* Portal renders the background content into a separate scene */}
       {createPortal(
-        <>
-          <Images />
-          <Typography />
-        </>,
+        // MODIFICATION: Conditionally renders the background elements based on the prop.
+        showDemoElements && (
+            <>
+                <Images />
+                <Typography />
+            </>
+        ),
         backgroundScene
       )}
       
@@ -43,7 +45,6 @@ export default function GlassSceneContainer({ children, materialProps }: GlassSc
       {/* This injects the buffer and material props into the 3D shape */}
       {React.Children.map(children, (child) => {
         if (React.isValidElement(child)) {
-          // MODIFICATION: Now passes the materialProps received from the parent.
           return React.cloneElement(child, {
             buffer: buffer.texture,
             materialProps: materialProps,

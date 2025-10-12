@@ -4,7 +4,6 @@ import { useControls } from 'leva';
 import { useEffect } from 'react';
 import SvgShape from './SvgShape.tsx';
 import GlassSceneContainer from './GlassSceneContainer.tsx';
-// MODIFICATION: Changed the import to use a standard JPG file.
 import jpgFile from './assets/hdr/studio.jpg';
 
 function Scene() {
@@ -47,6 +46,11 @@ function Scene() {
         render: (get) => get("Reflections.enableHDR"),
     },
   });
+  
+  // MODIFICATION: Added a new control to toggle the visibility of background elements.
+  const backgroundProps = useControls("Background", {
+    showDemoElements: { value: true, label: "Show Demo Elements" },
+  });
 
   useEffect(() => {
     if (reflectionProps.enableHDR) {
@@ -73,7 +77,6 @@ function Scene() {
         renderOrder={-2}
       />
 
-      {/* MODIFICATION: The <Environment> component now receives the JPG file. */}
       {reflectionProps.enableHDR ? (
         <Environment files={jpgFile} />
       ) : (
@@ -81,7 +84,8 @@ function Scene() {
       )}
       
       <directionalLight intensity={3} position={[0, 3, 2]} />
-      <GlassSceneContainer materialProps={materialProps}>
+      {/* MODIFICATION: Passed the new 'showDemoElements' prop to the container. */}
+      <GlassSceneContainer materialProps={materialProps} showDemoElements={backgroundProps.showDemoElements}>
         <SvgShape geometryProps={geometryProps} qualityProps={qualityProps} />
       </GlassSceneContainer>
     </>
