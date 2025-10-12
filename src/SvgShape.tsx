@@ -2,7 +2,6 @@ import React, { useMemo, useRef } from "react";
 import { useFrame, useLoader, type RootState } from "@react-three/fiber";
 import { SVGLoader, type SVGResult } from "three/examples/jsm/loaders/SVGLoader.js";
 import { Vector3, ExtrudeGeometry, Group, Shape, ShapePath, Color, type Texture } from "three";
-import { useControls } from "leva";
 import { MeshTransmissionMaterial, type MeshTransmissionMaterialProps } from '@react-three/drei';
 import pythonLogo from "./assets/shape.svg";
 
@@ -12,34 +11,34 @@ type ShapeData = {
     color: Color;
 };
 
-// Define the new props that will be injected by the container
+// MODIFICATION: Props are now passed down from the parent App component.
+interface GeometryProps {
+  scale: number;
+  depth: number;
+  roundness: number;
+  steps: number;
+  curveSegments: number;
+}
+
+interface QualityProps {
+  "High Res": boolean;
+}
+
 interface SvgShapeProps extends React.ComponentPropsWithoutRef<'group'> {
   buffer?: Texture;
   materialProps?: MeshTransmissionMaterialProps;
+  geometryProps: GeometryProps;
+  qualityProps: QualityProps;
 }
 
-export default function SvgShape({ buffer, materialProps, ...props }: SvgShapeProps) {
+export default function SvgShape({ buffer, materialProps, geometryProps, qualityProps, ...props }: SvgShapeProps) {
   const ref = useRef<Group>(null);
   const svgData = useLoader(SVGLoader, pythonLogo) as SVGResult;
 
-  // MODIFICATION: Added 'steps' and 'curveSegments' to the controls for finer detail adjustment.
-  const { scale, depth, roundness, steps, curveSegments } = useControls("Geometry", {
-    scale: { value: 1.0, min: 0.1, max: 2, step: 0.01 },
-    depth: { value: 100, min: 1, max: 300, step: 1 },
-    roundness: {
-      value: 7.0,
-      min: 0,
-      max: 20,
-      step: 0.1,
-      label: "Edge Roundness",
-    },
-    steps: { value: 2, min: 1, max: 20, step: 1, label: "Extrusion Steps" },
-    curveSegments: { value: 32, min: 4, max: 64, step: 1, label: "Curve Segments" },
-  });
-
-  const { "High Res": highRes } = useControls("Quality", {
-    "High Res": true,
-  });
+  // MODIFICATION: The useControls hooks have been removed from this component.
+  // The component now uses the props passed from App.tsx.
+  const { scale, depth, roundness, steps, curveSegments } = geometryProps;
+  const { "High Res": highRes } = qualityProps;
 
   const { shapes, scaleFactor, centerOffset } = useMemo(() => {
     if (!svgData.paths || svgData.paths.length === 0) {
@@ -94,7 +93,6 @@ export default function SvgShape({ buffer, materialProps, ...props }: SvgShapePr
       <group position={[-centerOffset.x, -centerOffset.y, -centerOffset.z]}>
         {shapes.map(({ shape }: ShapeData) => (
           <mesh key={shape.uuid}>
-            {/* MODIFICATION: Added 'steps' and 'curveSegments' and optimized 'bevelSegments' */}
             <extrudeGeometry
               args={[
                 shape,
@@ -105,7 +103,7 @@ export default function SvgShape({ buffer, materialProps, ...props }: SvgShapePr
                   bevelThickness: roundness,
                   bevelSize: roundness,
                   bevelOffset: -roundness,
-                  bevelSegments: highRes ? 24 : 8, // Optimized for performance
+                  bevelSegments: highRes ? 24 : 8,
                   curveSegments: curveSegments,
                 },
               ]}
