@@ -32,7 +32,7 @@ To get this project running on your local machine, follow these steps:
 
 1.  **Clone the repository:**
     ```bash
-    git clone https://github.com/your-username/React-3D-SVG-Glass-Shape.git
+    git clone https://github.com/IMROVOID/React-3D-SVG-Glass-Shape.git
     cd React-3D-SVG-Glass-Shape
     ```
 
