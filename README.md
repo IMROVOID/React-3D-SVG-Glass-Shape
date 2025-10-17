@@ -2,6 +2,8 @@
 
 This project demonstrates how to load an SVG file, extrude it into a 3D shape, and apply a dynamic, refractive glass material using React, Vite, and the React Three Fiber ecosystem. The result is a stunning, interactive 3D object with a "wobbly" glass distortion effect that refracts elements behind it in real-time.
 
+![React UI/UX Landing Page Screenshot](https://raw.githubusercontent.com/IMROVOID/React-3D-SVG-Glass-Shape/main/public/screenshot.png)
+
 ## ✨ Features
 
 *   **SVG to 3D Conversion:** Loads any SVG file and programmatically converts its paths into extruded 3D geometry.
